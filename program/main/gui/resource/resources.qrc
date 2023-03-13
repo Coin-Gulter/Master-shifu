@@ -1,0 +1,33 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/icons8-iron-man-material-outlined/icons8-iron-man-384.png</file>
+    <file>icons/icons8-npc-face-material-outlined/icons8-npc-face-96.png</file>
+    <file>icons/icons8-unavailable-384.png</file>
+    <file>icons/icons8-checkmark-384.png</file>
+    <file>icons/icons8-home-48.png</file>
+    <file>icons/icons8-25-box-384.png</file>
+    <file>icons/icons8-home-96.png</file>
+    <file>icons/icons8-home-192.png</file>
+    <file>icons/icons8-home-384.png</file>
+    <file>icons/icons8-home-96.png</file>
+    <file>icons/icons8-about-96.png</file>
+    <file>icons/icons8-home-96.png</file>
+    <file>icons/icons8-puzzle-96.png</file>
+    <file>icons/icons8-services-96.png</file>
+    <file>icons/icons8-box-192.png</file>
+    <file>icons/icons8-box-384.png</file>
+    <file>icons/icons8-cancel-192.png</file>
+    <file>icons/icons8-checkmark-192.png</file>
+    <file>icons/icons8-download-from-the-cloud-48.png</file>
+    <file>icons/icons8-closed-eye-90.png</file>
+    <file>icons/icons8-millenium-eye-96.png</file>
+    <file>icons/icons8-no-data-availible-96.png</file>
+    <file>icons/icons8-no-synchronize-240.png</file>
+    <file>icons/icons8-picture-384.png</file>
+    <file>icons/icons8-sad-96.png</file>
+    <file>icons/icons8-scroll-144.png</file>
+    <file>icons/icons8-synchronize-192#EEEEEE.png</file>
+    <file>icons/icons8-synchronize-192.png</file>
+    <file>icons/icons8-uchiha-eyes-96.png</file>
+  </qresource>
+</RCC>

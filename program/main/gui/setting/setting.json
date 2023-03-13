@@ -1,0 +1,8 @@
+{
+    "page_setting_face_id_complexity_slider": 62,
+    "page_setting_face_id_training_slider": 9,
+    "page_setting_windows_notification_checkbox": true,
+    "page_setting_autostart_checkbox": true,
+    "page_setting_auto_face_id_always_checkbox": false,
+    "face_id_registered": false
+}

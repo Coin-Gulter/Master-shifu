@@ -1,0 +1,4 @@
+# Ignore log files and logs/ directory
+*.log
+face_id_data_test/
+*.pth

@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_user_check</class>
+ <widget class="QDialog" name="Dialog_user_check">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>300</width>
+    <height>200</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QStackedWidget" name="dialog_user_check_page">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>300</width>
+     <height>200</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>1</number>
+   </property>
+   <widget class="QWidget" name="page_face_id">
+    <widget class="QFrame" name="page_face_id_back_frame">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>300</width>
+       <height>200</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">.QFrame {
+	
+	background-color: rgb(238, 238, 238);
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QFrame" name="page_face_id_face_animation_frame">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>20</y>
+        <width>200</width>
+        <height>125</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QFrame {
+	border: 1px solid #c2ebec;
+	border-radius: 6px;
+	background-color: #c2ebec;
+}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLabel" name="page_face_id_face_animation_frame_label">
+       <property name="geometry">
+        <rect>
+         <x>5</x>
+         <y>5</y>
+         <width>190</width>
+         <height>115</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">.QLabel {
+	border: 2px dashed #393E46;
+	border-radius: 5px;
+	padding: 40px;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="page_face_id_face_animation_text_label">
+       <property name="geometry">
+        <rect>
+         <x>55</x>
+         <y>90</y>
+         <width>90</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">.QLabel {
+	font-size: 10px;
+	font-weight: bold;
+	text-align: center;
+	color: #222831
+}</string>
+       </property>
+       <property name="text">
+        <string>Don't recognize :(</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="page_face_id_face_animation_image_label">
+       <property name="geometry">
+        <rect>
+         <x>75</x>
+         <y>30</y>
+         <width>50</width>
+         <height>40</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">.QLabel {
+image: url(:/icons/icons/icons8-sad-96.png);
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="page_face_id_cancel_button">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>160</y>
+        <width>105</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QPushButton {
+	background-color:  #393E46;
+	color: #EEEEEE;
+	font-size: 12px;
+	font-weight: bold;
+	border: 1px solid #393E46;
+	border-radius: 5px;
+}
+
+.QPushButton:hover {
+	background-color: #00ADB5;
+	border-color:  #00ADB5;
+}</string>
+      </property>
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="page_face_id_using_password_button">
+      <property name="geometry">
+       <rect>
+        <x>155</x>
+        <y>160</y>
+        <width>105</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QPushButton {
+	background-color:  #393E46;
+	color: #EEEEEE;
+	font-size: 12px;
+	font-weight: bold;
+	border: 1px solid #393E46;
+	border-radius: 5px;
+}
+
+.QPushButton:hover {
+	background-color: #00ADB5;
+	border-color:  #00ADB5;
+}</string>
+      </property>
+      <property name="text">
+       <string>Using password</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_password_check">
+    <widget class="QFrame" name="page_password_check_back_frame">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>300</width>
+       <height>200</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">.QFrame {
+	
+	background-color: rgb(238, 238, 238);
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QPushButton" name="page_password_check_cancel_button">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>150</y>
+        <width>105</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QPushButton {
+	background-color:  #393E46;
+	color: #EEEEEE;
+	font-size: 12px;
+	font-weight: bold;
+	border: 1px solid #393E46;
+	border-radius: 5px;
+}
+
+.QPushButton:hover {
+	background-color: #00ADB5;
+	border-color:  #00ADB5;
+}
+
+.QPushButton:pressed {
+	background-color: #222831;
+}</string>
+      </property>
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="page_password_check_see_password_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>47</x>
+        <y>72</y>
+        <width>20</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox {
+	font-size: 10px;
+	font-weight: bold;
+	text-align: center;
+	color: #222831
+}
+
+QCheckBox::indicator {
+	height: 16px;
+	width: 16px;
+	border: 2px solid #393E46;
+	border-radius: 3px;
+}
+
+QCheckBox::indicator:checked {
+image: url(:/icons/icons/icons8-uchiha-eyes-96.png);
+	background-color: #75d2d6;
+}
+
+QCheckBox::indicator:unchecked {
+image: url(:/icons/icons/icons8-closed-eye-90.png);
+	background-color: #EEEEEE;
+}</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>12</width>
+        <height>12</height>
+       </size>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="page_password_check_enter_password_text_label">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>90</y>
+        <width>101</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QLabel {
+	font-size: 10px;
+	font-weight: bold;
+	text-align: center;
+	color: #222831
+}</string>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;........./\.........&lt;br/&gt;..........|..........&lt;br/&gt;Enter password&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="page_password_check_animation_image_label">
+      <property name="geometry">
+       <rect>
+        <x>135</x>
+        <y>20</y>
+        <width>31</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QLabel {
+image: url(:/icons/icons/icons8-millenium-eye-96.png);
+}</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="page_password_check_submit_button">
+      <property name="geometry">
+       <rect>
+        <x>155</x>
+        <y>150</y>
+        <width>105</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">.QPushButton {
+	background-color:  #393E46;
+	color: #EEEEEE;
+	font-size: 12px;
+	font-weight: bold;
+	border: 1px solid #393E46;
+	border-radius: 5px;
+}
+
+.QPushButton:hover {
+	background-color: #00ADB5;
+	border-color:  #00ADB5;
+}
+.QPushButton:pressed {
+	background-color: #222831;
+}</string>
+      </property>
+      <property name="text">
+       <string>Submit</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="page_password_check_enter_password_line_edit">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>69</y>
+        <width>180</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+	background-color:  #393E46;
+     font-size: 12px;
+     font-weight: bold;
+     color: #EEEEEE;
+     padding: 0 10px;
+     border: 2px solid #222831;
+     border-radius: 6px;
+     selection-background-color: darkgray;
+}</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::Password</enum>
+      </property>
+      <property name="readOnly">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resource/resources.qrc"/>
+  <include location="resource/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
