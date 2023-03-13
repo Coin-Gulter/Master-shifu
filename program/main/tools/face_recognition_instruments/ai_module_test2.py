@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
+import statistics
 import string
 import unicodedata
 
@@ -24,12 +25,12 @@ FACE_JSON_TARGET_PATH = PATH_NOW + r'\program\data\face_id_data\target_json\face
 FACE_JSON_TARGET_PASS_PATH = PATH_NOW + r'\program\data\face_id_data\target_json\face_pass_target_2.json'
 FACE_VALIDATE_DTSET =  PATH_NOW + r'\program\data\face_id_data\validate_face_dt'
 
-
 CHARACTERS_NUMBER = 129
 CLIENT_NUMBER = 2
 HIDDEN_SIZE = 256
 
 round_tensor = lambda tensor, n_digits: torch.round(tensor * 10**n_digits) / (10**n_digits)
+
 
 class img_compression_net(nn.Module):
 
@@ -55,7 +56,8 @@ class img_compression_net(nn.Module):
         res = self.relu(self.drop(self.hidden1(res)))
         # print('res1____________',res[:5])
         return res
-    
+
+
 class user_analyzer_net(nn.Module):
 
     def __init__(self, hidden_size=HIDDEN_SIZE, out_size=2):
@@ -79,6 +81,7 @@ class user_analyzer_net(nn.Module):
         out = self.soft(self.out(hidden2))
         # print("outsoft____________", out1[:5])
         return out
+
 
 class password_getting_net(nn.Module):
 
@@ -108,26 +111,14 @@ class password_getting_net(nn.Module):
         # print("outsoft____________", out1[:5])
         return out, next_hidden
 
-class net_recognize_train():
-    def __init__(self, model_analyzer, model_img_compression, optimizer2analyzer, optimizer2img_compression, criterion, face_dt_path=FACE_JSON_TARGET_PATH, pretrained=False, path2analyzer=NET_ANALYZER_WEIGHT, path2img_compression=NET_IMG_COMPRESSION_WEIGHT):
-        self.model_analyzer = model_analyzer
-        self.model_img_compression = model_img_compression
-        self.optimizer2analyzer = optimizer2analyzer
-        self.optimizer2img_compression =optimizer2img_compression
-        self.criterion = criterion
-        self.pairs = None
-        self.pretrained = pretrained
-        self.path2analyzer = path2analyzer
-        self.path2img_compression = path2img_compression
-        self.face_dt_path = face_dt_path
 
-        if pretrained:
-            self.model_analyzer.load_state_dict(torch.load(self.path2analyzer))
-            self.model_img_compression.load_state_dict(torch.load(self.path2img_compression))
+class net_train():
+    def __init__(self):
+        pass
 
-    def number2tensor(self, number, number2long_tensor=None, dtype= torch.float32):
-        if number2long_tensor:
-            zero_tensor = torch.zeros(number2long_tensor, dtype=dtype, device=DEVICE)
+    def number2tensor(self, number, length2long_tensor=None, dtype= torch.float32):
+        if length2long_tensor:
+            zero_tensor = torch.zeros(length2long_tensor, dtype=dtype, device=DEVICE)
             zero_tensor[number] = 1
             return zero_tensor
         else:
@@ -155,11 +146,41 @@ class net_recognize_train():
         rs = es - s
         return '%s (- %s)' % (self.asMinutes(s), self.asMinutes(rs))
 
+    def init_hidden(self):
+        return  torch.zeros(self.hidden_size)
+    
+    def make_zero_one_tensor(self, number, length, dtype=torch.float32):
+        zeros_tensor = torch.zeros(length, dtype=dtype, device=DEVICE)
+        zeros_tensor[int(number)] = 1
+        return zeros_tensor
+    
+    def make_zero_one_list(self, number, length):
+        zeros_tensor = [0]*length
+        zeros_tensor[int(number)] = 1
+        return zeros_tensor
+
+
+class net_recognize_instrument(net_train):
+    def __init__(self, model_analyzer, model_img_compression, optimizer2analyzer, optimizer2img_compression, criterion, face_dt_path=FACE_JSON_TARGET_PATH, path2analyzer=NET_ANALYZER_WEIGHT, path2img_compression=NET_IMG_COMPRESSION_WEIGHT):
+        super(net_recognize_instrument, self).__init__()
+        self.model_analyzer = model_analyzer
+        self.model_img_compression = model_img_compression
+        self.optimizer2analyzer = optimizer2analyzer
+        self.optimizer2img_compression =optimizer2img_compression
+        self.criterion = criterion
+        self.pairs = None
+        self.path2analyzer = path2analyzer
+        self.path2img_compression = path2img_compression
+        self.face_dt_path = face_dt_path
+
+    def upload_weight(self):
+        self.model_analyzer.load_state_dict(torch.load(self.path2analyzer))
+        self.model_img_compression.load_state_dict(torch.load(self.path2img_compression))
+
     def train(self, inp_img, target_client):
         self.optimizer2analyzer.zero_grad()
         self.optimizer2img_compression.zero_grad()
         loss = 0
-        # print('target_____________', target)
 
         img_compression = self.model_img_compression(inp_img)
         res = self.model_analyzer(img_compression)
@@ -175,10 +196,7 @@ class net_recognize_train():
     def train_iter(self, n_iter=1500, box=100, print_every=10, plot_every=10):
         start = time.time()
         print_loss_total = 0
-        # all_losses = []
-        # total_loss = 0
         result_list = []
-
         
         torch.enable_grad()
 
@@ -211,7 +229,6 @@ class net_recognize_train():
                 print_loss_total = 0
                 print(res_str)
                 result_list.append(res_str)
-                time.sleep(2)
 
             # if iter % plot_every == 0:
             #     all_losses.append(total_loss / plot_every)
@@ -259,58 +276,31 @@ class net_recognize_train():
             print('End of iteration rezult = ', rezult)
         print('percentage of validate people = ', (number_of_recognizes/number*100))
 
+    def use(self, input_img):
+        torch.no_grad()
+        
+        image_tensor = torch.tensor(input_img, dtype=torch.float32, device=DEVICE, requires_grad=True).reshape(1, 400, 400)
 
-class net_pass_getting_train():
-    def __init__(self, model_password_getting, optimizer2password_getting, criterion, face_dt_path=FACE_JSON_TARGET_PASS_PATH, pretrained=False, path2password_getting=NET_PASS_GETTING_WEIGHT, hidden_size=HIDDEN_SIZE):
+        img_compression = self.model_img_compression(image_tensor)
+        res_who_is = self.model_analyzer(img_compression)
+        topv, topi = res_who_is.topk(1)
+
+        return topi, topv
+
+
+class net_pass_getting_instrument(net_train):
+    def __init__(self, model_password_getting, optimizer2password_getting, criterion, face_dt_path=FACE_JSON_TARGET_PASS_PATH, path2password_getting=NET_PASS_GETTING_WEIGHT, hidden_size=HIDDEN_SIZE):
+        super(net_pass_getting_instrument, self).__init__()
         self.model_password_getting = model_password_getting
         self.optimizer2password_getting = optimizer2password_getting
         self.criterion = criterion
         self.pairs = None
         self.hidden_size = hidden_size
-        self.pretrained = pretrained
         self.path2password_getting = path2password_getting
         self.face_dt_path = face_dt_path
 
-        if pretrained:
-            self.model_password_getting.load_state_dict(torch.load(self.path2password_getting))
-
-    def init_hidden(self):
-        return  torch.zeros(self.hidden_size)
-
-    def number2tensor(self, number, number2long_tensor=None, dtype= torch.float32):
-        if number2long_tensor:
-            zero_tensor = torch.zeros(number2long_tensor, dtype=dtype, device=DEVICE)
-            zero_tensor[number] = 1
-            return zero_tensor
-        else:
-            return torch.tensor(number)
-
-    def tensor2number(self, tensor):
-        tensor.tolist()
-        return tensor.index(1)
-
-    def target2tensor(self, target, elements_number2long_tensor=None, dtype=torch.float32):
-        tensor_list = []
-        for number in target:
-            tensor_list.append(self.number2tensor(number, elements_number2long_tensor, dtype))
-        return tensor_list
-    
-    def make_zero_one_tensor(self, number, length, dtype=torch.float32):
-        zeros_tensor = torch.zeros(length, dtype=dtype, device=DEVICE)
-        zeros_tensor[int(number)] = 1
-        return zeros_tensor
-
-    def asMinutes(self, s):
-        m = math.floor(s / 60)
-        s -= m * 60
-        return '%dm %ds' % (m, s)
-
-    def timeSince(self, since, percent):
-        now = time.time()
-        s = now - since
-        es = s / (percent)
-        rs = es - s
-        return '%s (- %s)' % (self.asMinutes(s), self.asMinutes(rs))
+    def upload_weight(self):
+        self.model_password_getting.load_state_dict(torch.load(self.path2password_getting))
 
     def train(self, inp_pass, target_pass):
         self.optimizer2password_getting.zero_grad()
@@ -349,7 +339,7 @@ class net_pass_getting_train():
 
         return loss
 
-    def train_iter(self, n_iter=1500, box=100, print_every=10, plot_every=10):
+    def train_iter(self, n_iter=1500, box=100, print_every=100, plot_every=10):
         start = time.time()
         print_loss_total = 0
         # all_losses = []
@@ -387,7 +377,6 @@ class net_pass_getting_train():
                 print_loss_total = 0
                 print(res_str)
                 result_list.append(res_str)
-                time.sleep(2)
 
             # if iter % plot_every == 0:
             #     all_losses.append(total_loss / plot_every)
@@ -421,50 +410,79 @@ class net_pass_getting_train():
                 rezult.append(chr(topi.item()))
                 inside_iter += 1
 
-            # print('End of iteration rezult = ', rezult, 'who is this = ', input_tensor)s
+            print('End of iteration rezult = ', rezult, 'who is this = ', input_tensor)
+
+    def use(self, input_list):
+        torch.no_grad()
+        rezult = []
+        topv_list = []
+        inside_iter = 0
+        topi = None
+        next_hidden = self.init_hidden()
+
+        input_tensor = torch.tensor(input_list, dtype=torch.float32, device=DEVICE, requires_grad=False)
+
+        while topi != 128 and inside_iter <= 20:
+            symbol, next_hidden = self.model_password_getting(input_tensor, next_hidden)
+            topv, topi = symbol.topk(1)
+
+            topv_list.append(topv.item())
+            rezult.append(chr(topi.item()))
+            inside_iter += 1
+
+        return ''.join(rezult), statistics.median(topv_list)
 
 
-class net_use():
+class net_use(net_train):
+    def __init__(self, analyzer_lr=0.0001, img_compression_lr=0.0001, pass_getting_lr=0.0001):
+        super(net_use, self).__init__()
 
-    def __init__(self, model, state_dict_file):
-        self.model = model
-        self.model.load_state_dict(torch.load(state_dict_file))
+        self.model_analyzer = user_analyzer_net()
+        self.model_img_compression = img_compression_net()
+        self.model_pass_getting = password_getting_net()
 
-    def use(self, inp):
-        inp = torch.tensor(list(inp), dtype=torch.float32, device=DEVICE).reshape(1, 400, 400)
-        res1, res2 = self.model(inp)
-        # topv, topi = res1.topk(1)
-        # res2 = torch.round(res1)
-        topv, topi = res1.topk(1)
-        # res2 = res2.detach().numpy()
-        # print('items______', res2)
-        return topv.item(), topi.item()
+        self.optimizer2analyzer = optim.Adam(self.model_analyzer.parameters(), lr=analyzer_lr)
+        self.optimizer2img_compression = optim.Adam(self.model_img_compression.parameters(), lr=img_compression_lr)
+        self.optimizer2pass_getting = optim.Adam(self.model_pass_getting.parameters(), lr=pass_getting_lr)
+        self.criterion = nn.NLLLoss()
 
+        self.net_recog_instrument = net_recognize_instrument(self.model_analyzer, self.model_img_compression, optimizer2analyzer=self.optimizer2analyzer
+                                ,optimizer2img_compression=self.optimizer2img_compression, criterion=self.criterion)
+        self.net_pass_getter_instrument = net_pass_getting_instrument(self.model_pass_getting, self.optimizer2pass_getting, self.criterion)
+
+    def train(self, password, train_iter_recognize=2000, validate_iter_recognize=1000, train_iter_pass_getter=1000, validate_iter_pass_getter=100, validate=True):
+
+        dt_set_module_test2.preper_face_id_target_dt_set(password)
+
+        self.net_recog_instrument.train_iter(train_iter_recognize)
+        self.net_pass_getter_instrument.train_iter(train_iter_pass_getter)
+
+        if validate:
+            self.net_recog_instrument.validate(validate_iter_recognize)
+            self.net_pass_getter_instrument.validate(validate_iter_pass_getter)
+
+    def upload_weight(self):
+        self.net_pass_getter_instrument.upload_weight()
+        self.net_recog_instrument.upload_weight()
+
+    def retrain(self, password, train_iter_recognize=2000, validate_iter_recognize=1000, train_iter_pass_getter=1000, validate_iter_pass_getter=100, validate=True):
+        self.upload_weight()
+        self.train(password, train_iter_recognize, validate_iter_recognize, train_iter_pass_getter, validate_iter_pass_getter, validate)
+
+    def use(self, inp_img):
+        self.upload_weight()
+
+        topi, recog_probality_value = self.net_recog_instrument.use(inp_img)
+        inp2pass_getter = self.make_zero_one_list(topi, 2)
+        password, pass_probability_value = self.net_pass_getter_instrument.use(inp2pass_getter)
+        
+        return password, pass_probability_value, recog_probality_value
+    
 
 if __name__ == '__main__':
-    model_analyzer = user_analyzer_net()
-    model_img_compression = img_compression_net()
-    model_pass_getting = password_getting_net()
+    ai_net_use = net_use()
+    ai_net_use.train('jennet')
 
-    dt_set_module_test2.preper_face_id_target_dt_set('jenet')
-
-    optimizer2analyzer = optim.Adam(model_analyzer.parameters(), lr=0.0001)
-    optimizer2img_compression = optim.Adam(model_img_compression.parameters(), lr=0.0001)
-    optimizer2pass_getting = optim.Adam(model_pass_getting.parameters(), lr=0.0001)
-    criterion = nn.NLLLoss()
-
-
-    training_recog_net = net_recognize_train(model_analyzer, model_img_compression, optimizer2analyzer=optimizer2analyzer
-                            ,optimizer2img_compression=optimizer2img_compression, criterion=criterion, pretrained=False)
-    training_recog_net.train_iter(2000)
-    training_recog_net.validate(1000)
-
-    # training_pass_getter_net = net_pass_getting_train(model_pass_getting, optimizer2pass_getting, criterion, pretrained=False)
-    # training_pass_getter_net.train_iter(1000, print_every=100)
-    # training_pass_getter_net.validate(10)
-
-
-    # net_intro = net_use(model, NET_WEIGHT)
 
     # img = cv.imread(r'D:\Projects\PC_defender\data\filtered_face_dt\Volodymyr_Duleba\(0).jpg')
     # img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
