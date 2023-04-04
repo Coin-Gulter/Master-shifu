@@ -13,9 +13,11 @@ from tools.files_hashing_instruments import hash_module
 from tools import timer
 from multiprocessing import Process
 
-FACE_JSON_TARGET_PATH = r'..\data\face_id_data\target_json\face_id_target.json'
-FACE_DT_PATH = r'..\data\face_id_data\filtered_face_dt'
-NET_WEIGHT = r'..\data\face_id_data\net_weight\net_model.pth'
+PATH_NOW = os.getcwd()
+FACE_DT_PATH = PATH_NOW +  r'\program\data\face_id_data\filtered_face_dt'
+FACE_JSON_TARGET_PATH = PATH_NOW + r'\program\data\face_id_data\target_json\face_id_target_2.json'
+FACE_JSON_TARGET_PASS_PATH = PATH_NOW + r'\program\data\face_id_data\target_json\face_pass_target_2.json'
+# NET_WEIGHT = r'..\data\face_id_data\net_weight\net_model.pth'
 CHARACTERS_NUMBER = 149186
 
 class thread_get_image_camera(QThread):
@@ -89,45 +91,60 @@ class thread_get_image_camera(QThread):
 class add_upgrade_user(QThread):
     end_training_face_id = pyqtSignal()
 
-    def __init__(self, faces_list: list, ui_status_label:object, setting:object, upgrade:bool):
+    def __init__(self, faces_list: list, ui_status_label:object, setting:object, upgrade:bool, password:str):
         super().__init__()
         self.main_logger = logging.getLogger('main_logger')
         self.main_logger.info('Start registering "add upgrade user thread" main variables.')
 
+        self.net_user = ai_module.net_recognize(analyzer_lr=0.0001, img_compression_lr=0.0001, pass_getting_lr=0.0001)
         self.upgrade = upgrade        
         self.setting = setting
+        self.password = password
         self.faces_list = faces_list
         self.ui_status_label = ui_status_label
-        self.max_train_iteration = 1000
+        self.max_face_train_iteration = 3000
+        self.max_pass_train_iteration = 2000
         self.main_logger.debug('"add upgrade user thread" "upgrade" variable get value - "%s".', self.upgrade)
         self.main_logger.info('"add upgrade user thread" main variables registered.')
 
     def run(self):
         print(self.faces_list)
         self.main_logger.info('"add upgrade user thread" start working.')
+        iteration_face = int(self.max_face_train_iteration*(self.setting.page_setting_face_id_training_slider+1)/100)
 
-        if not self.upgrade:
+        self.ui_status_label.setText('| face id training ...|')
+
+        if self.upgrade:
+            dt_set_module.save_client_face(self.faces_list, folder_path=FACE_DT_PATH)
+            self.net_user.retrain(password=self.password, train_iter_recognize=iteration_face, validate_iter_recognize=1000, train_iter_pass_getter=self.max_pass_train_iteration,
+                                validate_iter_pass_getter=10, validate=False, test_iter_recognize=1000, test=False,
+                                path_face=FACE_DT_PATH, path_face_target=FACE_JSON_TARGET_PATH, path_pass_target=FACE_JSON_TARGET_PASS_PATH)
+
+        else:
             client_path = os.path.join(FACE_DT_PATH,"client")
             if os.path.exists(client_path):
                 shutil.rmtree(client_path)
             os.mkdir(client_path)
 
-        model = ai_module.user_detection_net(out_size=2)
-        dt_set_module.save_client_face(self.faces_list, folder_path=FACE_DT_PATH)
+            dt_set_module.save_client_face(self.faces_list, folder_path=FACE_DT_PATH)
 
-        dt_set_module.preper_face_id_target_dt_set(FACE_DT_PATH, face_target_path=FACE_JSON_TARGET_PATH)
+            self.net_user.train(password=self.password, train_iter_recognize=iteration_face, validate_iter_recognize=1000, train_iter_pass_getter=self.max_pass_train_iteration,
+                                validate_iter_pass_getter=10, validate=False, test_iter_recognize=1000, test=False,
+                                path_face=FACE_DT_PATH, path_face_target=FACE_JSON_TARGET_PATH, path_pass_target=FACE_JSON_TARGET_PASS_PATH)
+        
+        # model = ai_module.user_detection_net(out_size=2)
+        # dt_set_module.preper_face_id_target_dt_set(FACE_DT_PATH, face_target_path=FACE_JSON_TARGET_PATH)
 
-        iteration = int(self.max_train_iteration*(self.setting.page_setting_face_id_training_slider+1)/100)
+        # iteration = int(self.max_train_iteration*(self.setting.page_setting_face_id_training_slider+1)/100)
 
-        optimizer = ai_module.optim.SGD(model.parameters(), lr=0.0001)
-        criterion = ai_module.nn.CrossEntropyLoss()
-        training_net = ai_module.net_train(model, optimizer=optimizer, criterion=criterion, pretrained=self.upgrade, face_dt_path=FACE_JSON_TARGET_PATH, path=NET_WEIGHT)
-        training_process = Process(target=training_net.train_iter, args=(iteration,))
-        training_process.start()
+        # optimizer = ai_module.optim.SGD(model.parameters(), lr=0.0001)
+        # criterion = ai_module.nn.CrossEntropyLoss()
+        # training_net = ai_module.net_train(model, optimizer=optimizer, criterion=criterion, pretrained=self.upgrade, face_dt_path=FACE_JSON_TARGET_PATH, path=NET_WEIGHT)
+        # training_process = Process(target=training_net.train_iter, args=(iteration,))
+        # training_process.start()
 
-        self.ui_status_label.setText('| face id training ...|')
 
-        training_process.join()
+        # training_process.join()
         self.ui_status_label.setText('| FaceId registered :)|')
         self.end_training_face_id.emit()
 
@@ -171,30 +188,48 @@ class encrypt_decrypt_tread(QThread):
         self.quit()
 
 class face_id_processing(QThread):
-    face_id_processing_end = pyqtSignal(bool)
+    face_id_processing_end = pyqtSignal(str)
 
 
     def __init__(self, face_image_list, setting:object):
         super().__init__()
+        self.net_user = ai_module.net_recognize(analyzer_lr=0.0001, img_compression_lr=0.0001, pass_getting_lr=0.0001)
         self.face_image_list = face_image_list
         self.setting = setting
 
     def run(self):
-        model = ai_module.user_detection_net(out_size=2)
-        net_scan = ai_module.net_use(model, NET_WEIGHT)
+        # model = ai_module.user_detection_net(out_size=2)
+        # net_scan = ai_module.net_use(model, NET_WEIGHT)
         setting_value = self.setting.page_setting_face_id_complexity_slider
-        max_foto_checked_number = 25
+        max_foto_checked_number = 10
 
-        foto_checked_number = math.ceil(max_foto_checked_number*(setting_value+1)/100)
+        foto2checked_number = math.ceil(max_foto_checked_number*(setting_value+1)/100)
         probability = (50 + math.ceil(50*(setting_value+1)/100))/100
-        
-        for foto in self.face_image_list[:foto_checked_number]:
-            foto_gray = cv.cvtColor(foto, cv.COLOR_RGB2GRAY)
-            value, index = net_scan.use(foto_gray)
-            if index != 1 or value < probability:
-                self.face_id_processing_end.emit(False)
 
-        self.face_id_processing_end.emit(True)
+        foto_list = []
+        have_rezult = False
+        
+        for foto in self.face_image_list[:foto2checked_number*4]:
+            foto_gray = cv.cvtColor(foto, cv.COLOR_RGB2GRAY)
+            foto_list.append(foto_gray)
+
+            if len(foto_list) >= foto2checked_number:
+                rezult, recog_percentage = self.net_user.use(foto_list)
+
+                foto_list.clear()
+
+                if rezult == True and recog_percentage >= probability:
+                    self.face_id_processing_end.emit(rezult)
+                    have_rezult = True
+                    break
+                elif rezult == False:
+                    self.face_id_processing_end.emit('')
+                    have_rezult = True
+                    break
+
+        if not have_rezult:
+            self.face_id_processing_end.emit('')
+
 
     def stop(self):
         self.quit()

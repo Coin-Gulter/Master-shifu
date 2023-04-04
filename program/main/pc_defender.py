@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         self.password = None
         self.page_now = None
 
-        self.previous_status = []
+        self.previous_status = []         
         self.status = []
         self.saved_face_image_list = []
         self.files_list = []
@@ -251,18 +251,17 @@ class MainWindow(QMainWindow):
         password = self.ui_user_check_dialog.page_password_check_enter_password_line_edit.text()
         self.ui_user_check_dialog.page_password_check_enter_password_line_edit.setText('')
         if len(password) > 0:
-            password_bytes = bytes(password, "utf-8")
-            self.encrypt_decrypt_file_process(password_bytes)
+            self.encrypt_decrypt_file_processing(password)
             self.close_dialog_window(self.dialog_user_check)
         else:
             self.ui_user_check_dialog.page_password_check_enter_password_text_label.setText("Password not entered\n   Try again")
 
-    def face_id_processing_end(self, face_checked):
-        if face_checked:
+    def face_id_processing_end(self, face_password):
+        if len(face_password) > 0:
             self.ui_checked_result_dialog.dialog_user_result_information_frame_text_label.setText("All good :)")
             self.ui_checked_result_dialog.dialog_user_result_information_pixmap.setPixmap(QPixmap(':/icons/icons/icons8-checkmark-384.png'))
             self.dialog_checked_result.show()
-            self.encrypt_decrypt_file_process(face_id=True)
+            self.encrypt_decrypt_file_processing(password=face_password)
         else:
             self.ui_checked_result_dialog.dialog_user_result_information_frame_text_label.setText("Can't recognise you :(")
             self.ui_checked_result_dialog.dialog_user_result_information_pixmap.setPixmap(QPixmap(':/icons/icons/icons8-unavailable-384.png'))
@@ -270,17 +269,14 @@ class MainWindow(QMainWindow):
 
     def check_face_id(self):
         if self.camera_work:
-            self.thread_face_id_processing = thread.face_id_processing(self.saved_face_image, self.setting)
+            self.thread_face_id_processing = thread.face_id_processing(self.saved_face_image_list, self.setting)
             self.thread_face_id_processing.face_id_processing_end.connect(self.face_id_processing_end)
             self.thread_face_id_processing.run()
         else:
             self.ui_user_check_dialog.page_face_id_face_animation_text_label.setText('Camera not work :(')
 
-    def encrypt_decrypt_file_process(self, pass_bytes=None, face_id=False):
-        if face_id:
-            with open(os.path.join(FILE_HASHING_PATH, 'face_id.txt'), 'r') as face_file:
-                face_pass = face_file.read()
-            pass_bytes = bytes(face_pass, "UTF-8")
+    def encrypt_decrypt_file_processing(self, password=None):
+        pass_bytes = bytes(password, "UTF-8")
         if self.encrypting_state:
                 self.thread_encrypt_decrypt_files = thread.encrypt_decrypt_tread(self.files_list, self.dir_list[0], encrypt=True, password_bytes=pass_bytes, file_hashing_path=FILE_HASHING_PATH)
         else:
@@ -586,32 +582,32 @@ class MainWindow(QMainWindow):
         self.restart_qtimer(self.page_extension_interface_reset_timer)
 
         if self.upgrade_face_training:
-            with open(os.path.join(FILE_HASHING_PATH, 'face_id.txt'), 'w') as face_file:
-                face_file.write(self.password)
+            # with open(os.path.join(FILE_HASHING_PATH, 'face_id.txt'), 'w') as face_file:
+            #     face_file.write(self.password)
 
             password_byte = bytes(self.password, "UTF-8")
             self.hashing.add_new_pass_salt_to_hash("client", password_byte)
-            self.password = None
 
             print(self.saved_face_image_list)
-            self.thread_upgrade_user = thread.add_upgrade_user(self.saved_face_image_list, self.ui.main_status_label, self.setting, True)
+            self.thread_upgrade_user = thread.add_upgrade_user(self.saved_face_image_list, self.ui.main_status_label, self.setting, True, password=self.password)
             self.thread_upgrade_user.end_training_face_id.connect(self.face_id_add_training_end)
             self.thread_upgrade_user.start()
             self.enable_button(False, self.ui.page_extension_add_button, self.ui.page_extension_reset_button, self.ui.page_extension_upgrade_button)
+            self.password = None
             self.main_logger.debug('User enter correct password, face id upgrade thread starts.')
         else:
-            with open(os.path.join(FILE_HASHING_PATH, 'face_id.txt'), 'w') as face_file:
-                face_file.write(self.password)
+            # with open(os.path.join(FILE_HASHING_PATH, 'face_id.txt'), 'w') as face_file:
+            #     face_file.write(self.password)
 
             password_byte = bytes(self.password, "UTF-8")
             self.hashing.add_new_pass_salt_to_hash("client", password_byte)
-            self.password = None
 
             print(self.saved_face_image_list)
-            self.thread_add_user = thread.add_upgrade_user(self.saved_face_image_list, self.ui.main_status_label, self.setting, False)
+            self.thread_add_user = thread.add_upgrade_user(self.saved_face_image_list, self.ui.main_status_label, self.setting, False, password=self.password)
             self.thread_add_user.end_training_face_id.connect(self.face_id_add_training_end)
             self.thread_add_user.start()
             self.enable_button(False, self.ui.page_extension_add_button, self.ui.page_extension_reset_button, self.ui.page_extension_upgrade_button)
+            self.password = None
             self.main_logger.debug('User enter password and start thread function to add new face id.')
 
     def start_save_face_process(self):
